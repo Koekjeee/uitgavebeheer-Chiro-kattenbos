@@ -1,93 +1,40 @@
-// Firebase configuratie
-const firebaseConfig = {
-  apiKey: "AIzaSyC-UaXhh5juhV4raXWnzku9fSZZD75-y9w",
-  authDomain: "uitgavebeheerch.firebaseapp.com",
-  projectId: "uitgavebeheerch",
-  messagingSenderId: "461673562296",
-  appId: "1:461673562296:web:d90a026cd685400139f44d"
-};
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uitgavebeheer</title>
+  <link rel="stylesheet" href="style.css">
 
-// Gebruik compat-versie
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>💸 Uitgavebeheer</h1>
 
-// 🔐 Authenticatie
-function register() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+    <div id="auth-section">
+      <input type="email" id="email" placeholder="E-mail">
+      <input type="password" id="password" placeholder="Wachtwoord">
+      <button onclick="register()">Registreer</button>
+      <button onclick="login()">Login</button>
+    </div>
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
+    <div id="uitgave-section" style="display:none;">
+      <button onclick="logout()">Logout</button>
 
-      // Voeg gebruiker toe aan Firestore
-      return db.collection("gebruikers").doc(user.uid).set({
-        email: user.email,
-        aangemaaktOp: new Date(),
-        rol: "lid" // optioneel, pas aan voor Chiro-structuur
-      });
-    })
-    .then(() => {
-      alert("Geregistreerd en opgeslagen in Firestore!");
-    })
-    .catch(error => alert(error.message));
-}
+      <h2>Nieuwe uitgave</h2>
+      <input type="number" id="bedrag" placeholder="Bedrag (€)">
+      <input type="text" id="categorie" placeholder="Categorie">
+      <button onclick="voegUitgaveToe()">Toevoegen</button>
 
-function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      document.getElementById("auth-section").style.display = "none";
-      document.getElementById("uitgave-section").style.display = "block";
-      haalUitgavenOp();
-    })
-    .catch(error => alert(error.message));
-}
+      <h2>📋 Overzicht</h2>
+      <ul id="uitgaven-lijst"></ul>
+    </div>
+  </div>
 
-// 💰 Uitgave toevoegen
-function voegUitgaveToe() {
-  const bedrag = parseFloat(document.getElementById("bedrag").value);
-  const categorie = document.getElementById("categorie").value;
-  const gebruiker = auth.currentUser;
-
-  if (!gebruiker) return alert("Niet ingelogd");
-
-  db.collection("uitgaven").add({
-    uid: gebruiker.uid,
-    bedrag,
-    categorie,
-    datum: new Date()
-  }).then(() => {
-    alert("Uitgave toegevoegd!");
-    haalUitgavenOp();
-  }).catch(error => alert(error.message));
-}
-
-function logout() {
-  auth.signOut().then(() => {
-    document.getElementById("auth-section").style.display = "block";
-    document.getElementById("uitgave-section").style.display = "none";
-  });
-}
-
-// 📋 Uitgaven ophalen
-function haalUitgavenOp() {
-  const gebruiker = auth.currentUser;
-  const lijst = document.getElementById("uitgaven-lijst");
-  lijst.innerHTML = "";
-
-  db.collection("uitgaven")
-    .where("uid", "==", gebruiker.uid)
-    .orderBy("datum", "desc")
-    .get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const item = document.createElement("li");
-        item.textContent = `${data.categorie}: €${data.bedrag.toFixed(2)} op ${new Date(data.datum.toDate()).toLocaleDateString()}`;
-        lijst.appendChild(item);
-      });
-    });
-}
+  <script src="script.js"></script>
+</body>
+</html>
