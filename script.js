@@ -64,6 +64,13 @@ function voegUitgaveToe() {
   }).catch(error => alert(error.message));
 }
 
+function logout() {
+  auth.signOut().then(() => {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("uitgave-section").style.display = "none";
+  });
+}
+
 // 📋 Uitgaven ophalen
 function haalUitgavenOp() {
   const gebruiker = auth.currentUser;
