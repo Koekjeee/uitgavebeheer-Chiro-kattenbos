@@ -7,6 +7,7 @@ const firebaseConfig = {
   appId: "1:461673562296:web:d90a026cd685400139f44d"
 };
 
+// Gebruik compat-versie
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
