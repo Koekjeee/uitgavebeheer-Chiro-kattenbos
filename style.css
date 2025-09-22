@@ -13,7 +13,7 @@ body {
   border-radius: 8px;
 }
 
-input {
+input, select {
   display: block;
   width: 100%;
   margin: 10px 0;
