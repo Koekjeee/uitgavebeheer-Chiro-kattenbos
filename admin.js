@@ -35,7 +35,6 @@ function adminVoegUitgaveToe() {
     datum: firebase.firestore.FieldValue.serverTimestamp()
   })
   .then(() => {
-    alert("Uitgave toegevoegd!");
     document.getElementById("admin-titel").value = "";
     document.getElementById("admin-bedrag").value = "";
     document.getElementById("admin-categorie").value = "";
@@ -103,12 +102,50 @@ function verwijderUitgave(id) {
   }
 }
 
+function laadGebruikersBeheer() {
+  const lijst = document.getElementById("gebruikers-lijst");
+  lijst.innerHTML = "";
+
+  db.collection("gebruikers").get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        const { email, rol, groep } = doc.data();
+        const uid = doc.id;
+        const item = document.createElement("div");
+        item.innerHTML = `
+          <strong>${email}</strong><br>
+          Rol:
+          <select onchange="updateRol('${uid}', this.value)">
+            <option value="gebruiker" ${rol === "gebruiker" ? "selected" : ""}>gebruiker</option>
+            <option value="admin" ${rol === "admin" ? "selected" : ""}>admin</option>
+          </select>
+          Groep:
+          <select onchange="updateGroep('${uid}', this.value)">
+            ${["ribbels","speelclubs","kwiks","tippers","rakkers","aspi","leiding","kokkies","overige"]
+              .map(g => `<option value="${g}" ${groep === g ? "selected" : ""}>${g}</option>`).join("")}
+          </select>
+          <hr>
+        `;
+        lijst.appendChild(item);
+      });
+    });
+}
+
+function updateRol(uid, rol) {
+  db.collection("gebruikers").doc(uid).update({ rol });
+}
+
+function updateGroep(uid, groep) {
+  db.collection("gebruikers").doc(uid).update({ groep });
+}
+
 auth.onAuthStateChanged(user => {
   if (!user) return goBack();
   db.collection("gebruikers").doc(user.uid).get()
     .then(doc => {
       if (doc.exists && doc.data().rol === "admin") {
         laadUitgavenBeheer();
+        laadGebruikersBeheer();
       } else {
         goBack();
       }
