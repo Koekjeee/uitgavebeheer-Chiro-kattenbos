@@ -23,6 +23,27 @@ function adminRegistreer() {
     return alert("Vul alle velden in");
   }
 
+  fetch("https://jouw-server-url/admin/createUser", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, rol, groep })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Gebruiker aangemaakt!");
+      document.getElementById("new-email").value = "";
+      document.getElementById("new-password").value = "";
+      document.getElementById("new-rol").value = "gebruiker";
+      document.getElementById("new-groep").selectedIndex = 0;
+      laadGebruikersBeheer();
+    } else {
+      alert("Fout: " + data.message);
+    }
+  })
+  .catch(e => alert("Serverfout: " + e.message));
+}
+
   auth.createUserWithEmailAndPassword(email, password)
     .then(({ user }) => {
       console.log("Nieuwe gebruiker aangemaakt:", user.uid);
