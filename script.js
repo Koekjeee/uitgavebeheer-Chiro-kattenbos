@@ -140,4 +140,19 @@ auth.onAuthStateChanged((user) => {
     document.getElementById("uitgave-section").style.display = "block";
 
     db.collection("gebruikers").doc(user.uid).get()
+          .then(doc => {
+        const data = doc.data();
+        if (data.rol === "admin") {
+          document.getElementById("admin-section").style.display = "block";
+          laadAdminDashboard();
+        }
+      });
+
+    haalUitgavenOp();
+  } else {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("uitgave-section").style.display = "none";
+    document.getElementById("admin-section").style.display = "none";
+  }
+});
      
