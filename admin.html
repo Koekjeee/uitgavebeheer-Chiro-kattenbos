@@ -16,11 +16,14 @@
     <button onclick="goBack()">Terug</button>
 
     <div class="panel">
-      <h3>➕ Uitgave toevoegen voor groep</h3>
-      <input type="text" id="admin-titel" placeholder="Titel" />
-      <input type="number" id="admin-bedrag" placeholder="Bedrag (€)" />
-      <input type="text" id="admin-categorie" placeholder="Categorie" />
-      <select id="admin-groep">
+      <h3>👤 Nieuwe gebruiker aanmaken</h3>
+      <input type="email" id="new-email" placeholder="E-mail" />
+      <input type="password" id="new-password" placeholder="Wachtwoord" />
+      <select id="new-rol">
+        <option value="gebruiker">Gebruiker</option>
+        <option value="admin">Admin</option>
+      </select>
+      <select id="new-groep">
         <option value="ribbels">Ribbels</option>
         <option value="speelclubs">Speelclubs</option>
         <option value="kwiks">Kwiks</option>
@@ -31,17 +34,11 @@
         <option value="kokkies">Kokkies</option>
         <option value="overige">Overige</option>
       </select>
-      <label><input type="checkbox" id="admin-betaald" /> Betaald</label>
-      <button onclick="adminVoegUitgaveToe()">Uitgave toevoegen</button>
+      <button onclick="adminRegistreer()">Gebruiker aanmaken</button>
     </div>
 
     <div class="panel">
-      <h3>📋 Uitgavenbeheer</h3>
-      <div id="uitgaven-beheer"></div>
-    </div>
-
-    <div class="panel">
-      <h3>👤 Gebruikersbeheer</h3>
+      <h3>📋 Gebruikersbeheer</h3>
       <div id="gebruikers-lijst"></div>
     </div>
   </div>
