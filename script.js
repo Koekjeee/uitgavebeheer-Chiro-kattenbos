@@ -119,25 +119,49 @@ function haalUitgavenOp() {
 
 
 // 7. Admin-dashboard vullen
+// 1. Functie om Admin Dashboard te vullen
 function laadAdminDashboard() {
   const lijst = document.getElementById("gebruikers-lijst");
   lijst.innerHTML = "";
+
   db.collection("gebruikers").get()
     .then(snapshot => {
       snapshot.forEach(doc => {
-        const d = doc.data();
+        const { email, rol, groep } = doc.data();
+        const uid = doc.id;
+
+        // Maak een list-item aan
         const item = document.createElement("li");
         item.innerHTML = `
-          ${d.email} (${d.rol}${d.groep ? `, ${d.groep}` : ""})
-          <select onchange="updateRol('${doc.id}', this.value)">
-            <option value="gebruiker" ${d.rol==="gebruiker"?"selected":""}>gebruiker</option>
-            <option value="admin" ${d.rol==="admin"?"selected":""}>admin</option>
+          ${email}
+          <!-- Rol dropdown -->
+          <select onchange="updateRol('${uid}', this.value)">
+            <option value="gebruiker" ${rol === "gebruiker" ? "selected" : ""}>gebruiker</option>
+            <option value="admin" ${rol === "admin" ? "selected" : ""}>admin</option>
+          </select>
+
+          <!-- Groep dropdown -->
+          <select onchange="updateGroep('${uid}', this.value)">
+            ${[
+              "ribbels","speelclubs","kwiks","tippers",
+              "rakkers","aspi","leiding","kokkies","overige"
+            ].map(g =>
+              `<option value="${g}" ${groep === g ? "selected" : ""}>${g}</option>`
+            ).join("")}
           </select>
         `;
+
         lijst.appendChild(item);
       });
     })
-    .catch(err => console.error("Fout laadAdminDashboard:", err));
+    .catch(err => console.error("Fout bij laden Admin Dashboard:", err));
+}
+
+// 2. Functie om groep bij te werken
+function updateGroep(uid, nieuweGroep) {
+  db.collection("gebruikers").doc(uid)
+    .update({ groep: nieuweGroep })
+    .catch(err => console.error("Fout bij updateGroep:", err));
 }
 
 // 8. Rol updaten
