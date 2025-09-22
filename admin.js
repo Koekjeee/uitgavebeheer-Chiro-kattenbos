@@ -1,4 +1,3 @@
-// Firebase init
 const firebaseConfig = {
   apiKey: "AIzaSyC-UaXhh5juhV4raXWnzku9fSZZD75-y9w",
   authDomain: "uitgavebeheerch.firebaseapp.com",
@@ -10,83 +9,108 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Keer terug naar index
 function goBack() {
   window.location.href = "index.html";
 }
 
-// Laad gebruikers in dashboard
-function laadAdminDashboard() {
-  const lijst = document.getElementById("gebruikers-lijst");
-  lijst.innerHTML = "";
-  db.collection("gebruikers").get()
-    .then(snap => {
-      snap.forEach(doc => {
-        const { email, rol, groep } = doc.data();
-        const uid = doc.id;
-        const li = document.createElement("li");
-        li.innerHTML = `
-          ${email}
-          <select onchange="updateRol('${uid}', this.value)">
-            <option value="gebruiker" ${rol==="gebruiker"?"selected":""}>gebruiker</option>
-            <option value="admin" ${rol==="admin"?"selected":""}>admin</option>
-          </select>
-          <select onchange="updateGroep('${uid}', this.value)">
-            ${["ribbels","speelclubs","kwiks","tippers","rakkers","aspi","leiding","kokkies","overige"]
-              .map(g => `<option value="${g}" ${groep===g?"selected":""}>${g}</option>`).join("")}
-          </select>
-        `;
-        lijst.appendChild(li);
-      });
-    })
-    .catch(e => console.error(e));
-}
+function adminVoegUitgaveToe() {
+  const titel = document.getElementById("admin-titel").value.trim();
+  const bedrag = parseFloat(document.getElementById("admin-bedrag").value);
+  const categorie = document.getElementById("admin-categorie").value.trim();
+  const groep = document.getElementById("admin-groep").value;
+  const betaald = document.getElementById("admin-betaald").checked;
+  const uid = auth.currentUser?.uid;
 
-// Update rol
-function updateRol(uid, rol) {
-  db.collection("gebruikers").doc(uid).update({ rol });
-}
-
-// Update groep
-function updateGroep(uid, groep) {
-  db.collection("gebruikers").doc(uid).update({ groep });
-}
-
-// Nieuwe gebruiker aanmaken
-function adminRegistreer() {
-  const email = document.getElementById("new-email").value.trim();
-  const password = document.getElementById("new-password").value;
-  const rol = document.getElementById("new-rol").value;
-  const groep = document.getElementById("new-groep").value;
-
-  if (!email || !password) {
-    return alert("E-mail en wachtwoord zijn verplicht");
+  if (!titel || !bedrag || !categorie || !groep) {
+    return alert("Vul alle velden in");
   }
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(({ user }) => {
-      return db.collection("gebruikers").doc(user.uid).set({
-        email, rol, groep,
-        aangemaaktOp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    })
-    .then(() => {
-      document.getElementById("new-email").value = "";
-      document.getElementById("new-password").value = "";
-      laadAdminDashboard();
-    })
-    .catch(e => alert(e.message));
+  db.collection("uitgaven").add({
+    uid,
+    titel,
+    bedrag,
+    categorie,
+    groep,
+    betaald,
+    datum: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    alert("Uitgave toegevoegd!");
+    document.getElementById("admin-titel").value = "";
+    document.getElementById("admin-bedrag").value = "";
+    document.getElementById("admin-categorie").value = "";
+    document.getElementById("admin-groep").selectedIndex = 0;
+    document.getElementById("admin-betaald").checked = false;
+    laadUitgavenBeheer();
+  });
 }
 
-// Alleen admins mogen hier komen
+function laadUitgavenBeheer() {
+  const lijst = document.getElementById("uitgaven-beheer");
+  lijst.innerHTML = "";
+
+  db.collection("uitgaven").orderBy("datum", "desc").get()
+    .then(snapshot => {
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Titel</th>
+            <th>Bedrag</th>
+            <th>Categorie</th>
+            <th>Groep</th>
+            <th>Datum</th>
+            <th>Betaald</th>
+            <th>Acties</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector("tbody");
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const datum = d.datum?.toDate().toLocaleString() || "";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.titel}</td>
+          <td>€${d.bedrag.toFixed(2)}</td>
+          <td>${d.categorie}</td>
+          <td>${d.groep}</td>
+          <td>${datum}</td>
+          <td>
+            <input type="checkbox" ${d.betaald ? "checked" : ""} onchange="toggleBetaald('${doc.id}', this.checked)">
+          </td>
+          <td>
+            <button onclick="verwijderUitgave('${doc.id}')">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      lijst.appendChild(table);
+    });
+}
+
+function toggleBetaald(id, status) {
+  db.collection("uitgaven").doc(id).update({ betaald: status });
+}
+
+function verwijderUitgave(id) {
+  if (confirm("Weet je zeker dat je deze uitgave wilt verwijderen?")) {
+    db.collection("uitgaven").doc(id).delete()
+      .then(() => laadUitgavenBeheer());
+  }
+}
+
 auth.onAuthStateChanged(user => {
   if (!user) return goBack();
   db.collection("gebruikers").doc(user.uid).get()
     .then(doc => {
-      if (doc.data().rol !== "admin") {
-        goBack();
+      if (doc.exists && doc.data().rol === "admin") {
+        laadUitgavenBeheer();
       } else {
-        laadAdminDashboard();
+        goBack();
       }
     });
 });
