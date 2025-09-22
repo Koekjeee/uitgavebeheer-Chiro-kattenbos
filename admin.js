@@ -23,30 +23,10 @@ function adminRegistreer() {
     return alert("Vul alle velden in");
   }
 
-  fetch("https://jouw-server-url/admin/createUser", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, rol, groep })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("Gebruiker aangemaakt!");
-      document.getElementById("new-email").value = "";
-      document.getElementById("new-password").value = "";
-      document.getElementById("new-rol").value = "gebruiker";
-      document.getElementById("new-groep").selectedIndex = 0;
-      laadGebruikersBeheer();
-    } else {
-      alert("Fout: " + data.message);
-    }
-  })
-  .catch(e => alert("Serverfout: " + e.message));
-}
+  const secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
 
-  auth.createUserWithEmailAndPassword(email, password)
+  secondaryApp.auth().createUserWithEmailAndPassword(email, password)
     .then(({ user }) => {
-      console.log("Nieuwe gebruiker aangemaakt:", user.uid);
       return db.collection("gebruikers").doc(user.uid).set({
         email,
         rol,
@@ -56,6 +36,7 @@ function adminRegistreer() {
     })
     .then(() => {
       alert("Gebruiker toegevoegd!");
+      secondaryApp.auth().signOut();
       document.getElementById("new-email").value = "";
       document.getElementById("new-password").value = "";
       document.getElementById("new-rol").value = "gebruiker";
@@ -63,8 +44,8 @@ function adminRegistreer() {
       laadGebruikersBeheer();
     })
     .catch(e => {
-      console.error("Fout bij aanmaken:", e);
       alert("Fout: " + e.message);
+      secondaryApp.auth().signOut();
     });
 }
 
@@ -90,6 +71,7 @@ function laadGebruikersBeheer() {
             ${["ribbels","speelclubs","kwiks","tippers","rakkers","aspi","leiding","kokkies","overige"]
               .map(g => `<option value="${g}" ${groep === g ? "selected" : ""}>${g}</option>`).join("")}
           </select>
+          <button onclick="verwijderGebruiker('${uid}')">🗑️ Verwijder</button>
           <hr>
         `;
         lijst.appendChild(item);
@@ -103,6 +85,17 @@ function updateRol(uid, rol) {
 
 function updateGroep(uid, groep) {
   db.collection("gebruikers").doc(uid).update({ groep });
+}
+
+function verwijderGebruiker(uid) {
+  if (confirm("Weet je zeker dat je deze gebruiker wilt verwijderen?")) {
+    db.collection("gebruikers").doc(uid).delete()
+      .then(() => {
+        alert("Gebruiker verwijderd uit Firestore.");
+        laadGebruikersBeheer();
+      })
+      .catch(e => alert("Fout bij verwijderen: " + e.message));
+  }
 }
 
 auth.onAuthStateChanged(user => {
