@@ -140,7 +140,7 @@ auth.onAuthStateChanged((user) => {
     document.getElementById("uitgave-section").style.display = "block";
 
     db.collection("gebruikers").doc(user.uid).get()
-          .then(doc => {
+      .then(doc => {
         const data = doc.data();
         if (data.rol === "admin") {
           document.getElementById("admin-section").style.display = "block";
@@ -155,4 +155,3 @@ auth.onAuthStateChanged((user) => {
     document.getElementById("admin-section").style.display = "none";
   }
 });
-     
