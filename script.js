@@ -1,40 +1,153 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uitgavebeheer</title>
-  <link rel="stylesheet" href="style.css">
+const firebaseConfig = {
+  apiKey: "AIzaSyC-UaXhh5juhV4raXWnzku9fSZZD75-y9w",
+  authDomain: "uitgavebeheerch.firebaseapp.com",
+  projectId: "uitgavebeheerch",
+  messagingSenderId: "461673562296",
+  appId: "1:461673562296:web:d90a026cd685400139f44d"
+};
 
-  <!-- Firebase SDKs (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <div class="container">
-    <h1>💸 Uitgavebeheer</h1>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-    <div id="auth-section">
-      <input type="email" id="email" placeholder="E-mail">
-      <input type="password" id="password" placeholder="Wachtwoord">
-      <button onclick="register()">Registreer</button>
-      <button onclick="login()">Login</button>
-    </div>
+function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const groep = document.getElementById("groep").value;
 
-    <div id="uitgave-section" style="display:none;">
-      <button onclick="logout()">Logout</button>
+  auth.createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      return db.collection("gebruikers").doc(user.uid).set({
+        email: user.email,
+        rol: "gebruiker",
+        groep,
+        aangemaaktOp: new Date()
+      });
+    })
+    .then(() => {
+      alert("Geregistreerd en opgeslagen!");
+    })
+    .catch(error => alert(error.message));
+}
 
-      <h2>Nieuwe uitgave</h2>
-      <input type="number" id="bedrag" placeholder="Bedrag (€)">
-      <input type="text" id="categorie" placeholder="Categorie">
-      <button onclick="voegUitgaveToe()">Toevoegen</button>
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      <h2>📋 Overzicht</h2>
-      <ul id="uitgaven-lijst"></ul>
-    </div>
-  </div>
+  auth.signInWithEmailAndPassword(email, password)
+    .catch(error => alert(error.message));
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+function logout() {
+  auth.signOut()
+    .then(() => {
+      document.getElementById("auth-section").style.display = "block";
+      document.getElementById("uitgave-section").style.display = "none";
+      document.getElementById("admin-section").style.display = "none";
+    });
+}
+
+function voegUitgaveToe() {
+  const bedrag = parseFloat(document.getElementById("bedrag").value);
+  const categorie = document.getElementById("categorie").value;
+  const gebruiker = auth.currentUser;
+
+  if (!gebruiker) return alert("Niet ingelogd");
+
+  db.collection("gebruikers").doc(gebruiker.uid).get()
+    .then(doc => {
+      const groep = doc.data().groep;
+
+      return db.collection("uitgaven").add({
+        uid: gebruiker.uid,
+        bedrag,
+        categorie,
+        groep,
+        datum: new Date()
+      });
+    })
+    .then(() => {
+      alert("Uitgave toegevoegd!");
+      haalUitgavenOp();
+    })
+    .catch(error => alert(error.message));
+}
+
+function haalUitgavenOp() {
+  const gebruiker = auth.currentUser;
+  const lijst = document.getElementById("uitgaven-lijst");
+  lijst.innerHTML = "";
+
+  db.collection("gebruikers").doc(gebruiker.uid).get()
+    .then(doc => {
+      const groep = doc.data().groep;
+
+      return db.collection("uitgaven")
+        .where("groep", "==", groep)
+        .orderBy("datum", "desc")
+        .get();
+    })
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const item = document.createElement("li");
+        item.textContent = `${data.categorie}: €${data.bedrag.toFixed(2)} op ${new Date(data.datum.toDate()).toLocaleDateString()}`;
+        lijst.appendChild(item);
+      });
+    });
+}
+
+function laadAdminDashboard() {
+  const lijst = document.getElementById("gebruikers-lijst");
+  lijst.innerHTML = "";
+
+  db.collection("gebruikers").get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const item = document.createElement("li");
+        item.innerHTML = `
+          ${data.email} (${data.rol}, ${data.groep})
+          <select onchange="updateRol('${doc.id}', this.value)">
+            <option value="gebruiker" ${data.rol === "gebruiker" ? "selected" : ""}>gebruiker</option>
+            <option value="admin" ${data.rol === "admin" ? "selected" : ""}>admin</option>
+          </select>
+          <select onchange="updateGroep('${doc.id}', this.value)">
+            ${["ribbels","speelclubs","kwiks","tippers","rakkers","aspi","leiding","kokkies","overige"].map(g => 
+              `<option value="${g}" ${data.groep === g ? "selected" : ""}>${g}</option>`).join("")}
+          </select>
+        `;
+        lijst.appendChild(item);
+      });
+    });
+}
+
+function updateRol(uid, rol) {
+  db.collection("gebruikers").doc(uid).update({ rol });
+}
+
+function updateGroep(uid, groep) {
+  db.collection("gebruikers").doc(uid).update({ groep });
+}
+
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    document.getElementById("auth-section").style.display = "none";
+    document.getElementById("uitgave-section").style.display = "block";
+
+    db.collection("gebruikers").doc(user.uid).get()
+      .then(doc => {
+        if (doc.exists && doc.data().rol === "admin") {
+          document.getElementById("admin-section").style.display = "block";
+          laadAdminDashboard();
+        }
+      });
+
+    haalUitgavenOp();
+  } else {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("uitgave-section").style.display = "none";
+    document.getElementById("admin-section").style.display = "none";
+  }
+});
