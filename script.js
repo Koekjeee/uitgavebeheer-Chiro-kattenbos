@@ -40,6 +40,7 @@ function voegUitgaveToe() {
         bedrag,
         categorie,
         groep,
+        betaald: false,
         datum: firebase.firestore.FieldValue.serverTimestamp()
       });
     })
@@ -75,6 +76,7 @@ function haalUitgavenOp() {
             <th>Categorie</th>
             <th>Groep</th>
             <th>Datum</th>
+            <th>Betaald</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -91,6 +93,7 @@ function haalUitgavenOp() {
           <td>${d.categorie}</td>
           <td>${d.groep}</td>
           <td>${datum}</td>
+          <td>${d.betaald ? "✅" : "❌"}</td>
         `;
         tbody.appendChild(row);
       });
