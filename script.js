@@ -1,4 +1,3 @@
-// Firebase init
 const firebaseConfig = {
   apiKey: "AIzaSyC-UaXhh5juhV4raXWnzku9fSZZD75-y9w",
   authDomain: "uitgavebeheerch.firebaseapp.com",
@@ -10,12 +9,10 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Navigeer naar admin-pagina
 function goToAdmin() {
   window.location.href = "admin.html";
 }
 
-// Login
 function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -23,22 +20,17 @@ function login() {
     .catch(e => alert(e.message));
 }
 
-// Logout
 function logout() {
   auth.signOut();
 }
 
-// Voeg uitgave toe (gebruik huidige user)
 function voegUitgaveToe() {
   const titel = document.getElementById("titel").value.trim();
   const bedrag = parseFloat(document.getElementById("bedrag").value);
-  const categorie = document.getElementById("categorie").value;
+  const categorie = document.getElementById("categorie").value.trim();
   const user = auth.currentUser;
-  if (!user || !titel || !bedrag || !categorie) {
-    return alert("Vul alle velden in en log in.");
-  }
+  if (!user || !titel || !bedrag || !categorie) return alert("Vul alle velden in");
 
-  // Haal groep van ingelogde gebruiker
   db.collection("gebruikers").doc(user.uid).get()
     .then(doc => {
       const groep = doc.data().groep;
@@ -54,58 +46,74 @@ function voegUitgaveToe() {
     .then(() => {
       document.getElementById("titel").value = "";
       document.getElementById("bedrag").value = "";
-      document.getElementById("categorie").selectedIndex = 0;
+      document.getElementById("categorie").value = "";
       haalUitgavenOp();
     })
     .catch(e => alert(e.message));
 }
 
-// Haal uitgaven op
 function haalUitgavenOp() {
   const user = auth.currentUser;
   if (!user) return;
-  document.getElementById("uitgaven-lijst").innerHTML = "";
+  const lijst = document.getElementById("uitgaven-lijst");
+  lijst.innerHTML = "";
 
   db.collection("gebruikers").doc(user.uid).get()
     .then(doc => {
       const { rol, groep } = doc.data();
-      let q = db.collection("uitgaven").orderBy("datum", "desc");
-      if (rol !== "admin") {
-        q = q.where("groep", "==", groep);
-      }
-      return q.get();
+      let query = db.collection("uitgaven").orderBy("datum", "desc");
+      if (rol !== "admin") query = query.where("groep", "==", groep);
+      return query.get();
     })
-    .then(snap => {
-      snap.forEach(doc => {
+    .then(snapshot => {
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Titel</th>
+            <th>Bedrag</th>
+            <th>Categorie</th>
+            <th>Groep</th>
+            <th>Datum</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector("tbody");
+
+      snapshot.forEach(doc => {
         const d = doc.data();
-        const li = document.createElement("li");
-        const tijd = d.datum?.toDate().toLocaleString() || "";
-        li.textContent = `${d.titel}: €${d.bedrag.toFixed(2)} (${d.categorie}) op ${tijd}`;
-        document.getElementById("uitgaven-lijst").appendChild(li);
+        const datum = d.datum?.toDate().toLocaleString() || "";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.titel}</td>
+          <td>€${d.bedrag.toFixed(2)}</td>
+          <td>${d.categorie}</td>
+          <td>${d.groep}</td>
+          <td>${datum}</td>
+        `;
+        tbody.appendChild(row);
       });
+
+      lijst.appendChild(table);
     });
 }
 
-// UI-switch op auth-state change
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("auth-section").style.display = "none";
     document.getElementById("uitgave-section").style.display = "block";
     document.getElementById("logout-btn").style.display = "inline-block";
 
-    // Zet rol & groep in beeld
     db.collection("gebruikers").doc(user.uid).get()
       .then(doc => {
         const { rol, groep } = doc.data();
-        document.getElementById("user-info")
-          .textContent = `Ingelogd als ${rol} | groep: ${groep}`;
-
+        document.getElementById("user-info").textContent = `Ingelogd als ${rol} | groep: ${groep}`;
         if (rol === "admin") {
           document.getElementById("admin-btn").style.display = "inline-block";
         }
+        haalUitgavenOp();
       });
-
-    haalUitgavenOp();
   } else {
     document.getElementById("auth-section").style.display = "block";
     document.getElementById("uitgave-section").style.display = "none";
