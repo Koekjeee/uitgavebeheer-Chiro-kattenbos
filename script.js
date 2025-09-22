@@ -1,6 +1,6 @@
 const firebaseConfig = {
   apiKey: "AIzaSyC-UaXhh5juhV4raXWnzku9fSZZD75-y9w",
-  authDomain: "uitgavebeheerch.firebaseapp.com",
+  authDomain: "Uitgavebeheerch.firebaseapp.com",
   projectId: "uitgavebeheerch",
   messagingSenderId: "461673562296",
   appId: "1:461673562296:web:d90a026cd685400139f44d"
