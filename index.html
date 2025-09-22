@@ -14,46 +14,54 @@
 </head>
 <body>
   <div class="container">
-    <h1>💸 Uitgavebeheer</h1>
+    <header>
+      <h1>💸 Uitgavebeheer</h1>
+      <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+    </header>
 
-    <div id="auth-section">
+    <!-- LOGIN SECTIE -->
+    <section id="auth-section">
       <input type="email" id="email" placeholder="E-mail">
       <input type="password" id="password" placeholder="Wachtwoord">
       <button onclick="login()">Login</button>
-    </div>
+    </section>
 
-    <div id="uitgave-section" style="display:none;">
-      <button onclick="logout()">Logout</button>
-
+    <!-- UITGAVE SECTIE -->
+    <section id="uitgave-section" style="display:none;">
       <h2>Nieuwe uitgave</h2>
+      <input type="text" id="titel" placeholder="Titel">
       <input type="number" id="bedrag" placeholder="Bedrag (€)">
-      <input type="text" id="categorie" placeholder="Categorie">
-      <button onclick="voegUitgaveToe()">Toevoegen</button>
+      <select id="categorie">
+        <option value="" disabled selected>Kies categorie</option>
+        <option value="materiaal">Materiaal</option>
+        <option value="eten">Eten</option>
+        <option value="anders">Anders</option>
+      </select>
+      <select id="uitgave-gebruiker">
+        <option value="" disabled selected>Kies gebruiker</option>
+      </select>
+      <button onclick="voegUitgaveToe()">Uitgave toevoegen</button>
 
       <h2>📋 Overzicht</h2>
       <ul id="uitgaven-lijst"></ul>
-    </div>
+    </section>
 
-    <div id="admin-section" style="display:none;">
+    <!-- ADMIN DASHBOARD -->
+    <section id="admin-section" style="display:none;">
       <h2>👑 Admin Dashboard</h2>
-      <ul id="gebruikers-lijst"></ul>
 
-      <h3>👤 Nieuwe gebruiker aanmaken</h3>
+      <h3>Nieuwe gebruiker aanmaken</h3>
+      <input type="text" id="new-name" placeholder="Naam">
       <input type="email" id="new-email" placeholder="E-mail">
-      <input type="password" id="new-password" placeholder="Wachtwoord">
-      <select id="new-groep">
-        <option value="ribbels">Ribbels</option>
-        <option value="speelclubs">Speelclubs</option>
-        <option value="kwiks">Kwiks</option>
-        <option value="tippers">Tippers</option>
-        <option value="rakkers">Rakkers</option>
-        <option value="aspi">Aspi</option>
-        <option value="leiding">Leiding</option>
-        <option value="kokkies">Kokkies</option>
-        <option value="overige">Overige</option>
+      <select id="new-rol">
+        <option value="gebruiker">Gebruiker</option>
+        <option value="admin">Admin</option>
       </select>
       <button onclick="adminRegistreer()">Gebruiker aanmaken</button>
-    </div>
+
+      <h3>Gebruikersbeheer</h3>
+      <ul id="gebruikers-lijst"></ul>
+    </section>
   </div>
 
   <script src="script.js"></script>
