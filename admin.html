@@ -6,45 +6,36 @@
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>👑 Admin Dashboard</h1>
-      <button onclick="goBack()">Terug</button>
-    </header>
+    <h1>👑 Admin Dashboard</h1>
+    <button onclick="goBack()">Terug</button>
 
-    <section id="admin-section">
-      <h3>Nieuwe gebruiker aanmaken</h3>
-      <input type="email" id="new-email" placeholder="E-mail">
-      <input type="password" id="new-password" placeholder="Tijdelijk wachtwoord">
-      <select id="new-rol">
-        <option value="gebruiker">Gebruiker</option>
-        <option value="admin">Admin</option>
-      </select>
-      <select id="new-groep">
-        <option value="ribbels">Ribbels</option>
-        <option value="speelclubs">Speelclubs</option>
-        <option value="kwiks">Kwiks</option>
-        <option value="tippers">Tippers</option>
-        <option value="rakkers">Rakkers</option>
-        <option value="aspi">Aspi</option>
-        <option value="leiding">Leiding</option>
-        <option value="kokkies">Kokkies</option>
-        <option value="overige">Overige</option>
-      </select>
-      <button onclick="adminRegistreer()">Gebruiker aanmaken</button>
+    <h3>Nieuwe gebruiker aanmaken</h3>
+    <input type="email" id="new-email" placeholder="E-mail">
+    <input type="password" id="new-password" placeholder="Wachtwoord">
+    <select id="new-rol">
+      <option value="gebruiker">Gebruiker</option>
+      <option value="admin">Admin</option>
+    </select>
+    <select id="new-groep">
+      <option value="ribbels">Ribbels</option>
+      <option value="speelclubs">Speelclubs</option>
+      <option value="kwiks">Kwiks</option>
+      <option value="tippers">Tippers</option>
+      <option value="rakkers">Rakkers</option>
+      <option value="aspi">Aspi</option>
+      <option value="leiding">Leiding</option>
+      <option value="kokkies">Kokkies</option>
+      <option value="overige">Overige</option>
+    </select>
+    <button onclick="adminRegistreer()">Gebruiker aanmaken</button>
 
-      <h3>Gebruikersbeheer</h3>
-      <ul id="gebruikers-lijst"></ul>
-    </section>
-  </div>
-
-  <script src="admin.js"></script>
-</body>
-</html>
+    <h3>Uitgave toevoegen voor groep</h3>
+    <input type="text" id="admin-titel" placeholder="Titel">
+    <input type="number" id="admin-bedrag" placeholder="Bedrag (€)">
+    <input type="text
