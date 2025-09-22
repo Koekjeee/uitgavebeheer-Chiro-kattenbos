@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Uitgavebeheer</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -18,24 +18,24 @@
     <button id="admin-btn" onclick="goToAdmin()" style="display:none;">Admin Dashboard</button>
 
     <section id="auth-section">
-      <input type="email" id="email" placeholder="E-mail">
-      <input type="password" id="password" placeholder="Wachtwoord">
+      <input type="email" id="email" placeholder="E-mail" />
+      <input type="password" id="password" placeholder="Wachtwoord" />
       <button onclick="login()">Login</button>
     </section>
 
     <section id="uitgave-section" style="display:none;">
-<div class="panel">
-  <h2>➕ Nieuwe uitgave</h2>
-  <input type="text" id="titel" placeholder="Titel">
-  <input type="number" id="bedrag" placeholder="Bedrag (€)">
-  <input type="text" id="categorie" placeholder="Categorie">
-  <button onclick="voegUitgaveToe()">Uitgave toevoegen</button>
-</div>
-      <button onclick="voegUitgaveToe()">Uitgave toevoegen</button>
-<div class="panel">
-  <h2>📋 Overzicht uitgaven</h2>
-  <div id="uitgaven-lijst"></div>
-</div>
+      <div class="panel">
+        <h2>➕ Nieuwe uitgave</h2>
+        <input type="text" id="titel" placeholder="Titel" />
+        <input type="number" id="bedrag" placeholder="Bedrag (€)" />
+        <input type="text" id="categorie" placeholder="Categorie" />
+        <button onclick="voegUitgaveToe()">Uitgave toevoegen</button>
+      </div>
+
+      <div class="panel">
+        <h2>📋 Overzicht uitgaven</h2>
+        <div id="uitgaven-lijst"></div>
+      </div>
     </section>
   </div>
   <script src="script.js"></script>
