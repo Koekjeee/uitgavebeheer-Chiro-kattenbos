@@ -6,46 +6,34 @@
   <title>Uitgavebeheer</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>💸 Uitgavebeheer</h1>
-      <div id="user-info" style="margin:10px 0; font-weight:bold;"></div>
-      <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
-      <button id="admin-btn" onclick="goToAdmin()" style="display:none;">Admin Dashboard</button>
-    </header>
+    <h1>💸 Uitgavebeheer</h1>
+    <div id="user-info"></div>
+    <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+    <button id="admin-btn" onclick="goToAdmin()" style="display:none;">Admin Dashboard</button>
 
-    <!-- LOGIN -->
     <section id="auth-section">
       <input type="email" id="email" placeholder="E-mail">
       <input type="password" id="password" placeholder="Wachtwoord">
       <button onclick="login()">Login</button>
     </section>
 
-    <!-- UITGAVEN -->
     <section id="uitgave-section" style="display:none;">
       <h2>Nieuwe uitgave</h2>
       <input type="text" id="titel" placeholder="Titel">
       <input type="number" id="bedrag" placeholder="Bedrag (€)">
-      <select id="categorie">
-        <option value="" disabled selected>Kies categorie</option>
-        <option value="materiaal">Materiaal</option>
-        <option value="eten">Eten</option>
-        <option value="anders">Anders</option>
-      </select>
+      <input type="text" id="categorie" placeholder="Categorie">
       <button onclick="voegUitgaveToe()">Uitgave toevoegen</button>
 
       <h2>📋 Overzicht</h2>
-      <ul id="uitgaven-lijst"></ul>
+      <div id="uitgaven-lijst"></div>
     </section>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>
