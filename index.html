@@ -18,17 +18,6 @@
     <div id="auth-section">
       <input type="email" id="email" placeholder="E-mail">
       <input type="password" id="password" placeholder="Wachtwoord">
-      <select id="groep">
-        <option value="ribbels">Ribbels</option>
-        <option value="speelclubs">Speelclubs</option>
-        <option value="kwiks">Kwiks</option>
-        <option value="tippers">Tippers</option>
-        <option value="rakkers">Rakkers</option>
-        <option value="aspi">Aspi</option>
-        <option value="leiding">Leiding</option>
-        <option value="kokkies">Kokkies</option>
-        <option value="overige">Overige</option>
-      </select>
       <button onclick="login()">Login</button>
     </div>
 
@@ -47,6 +36,22 @@
     <div id="admin-section" style="display:none;">
       <h2>👑 Admin Dashboard</h2>
       <ul id="gebruikers-lijst"></ul>
+
+      <h3>👤 Nieuwe gebruiker aanmaken</h3>
+      <input type="email" id="new-email" placeholder="E-mail">
+      <input type="password" id="new-password" placeholder="Wachtwoord">
+      <select id="new-groep">
+        <option value="ribbels">Ribbels</option>
+        <option value="speelclubs">Speelclubs</option>
+        <option value="kwiks">Kwiks</option>
+        <option value="tippers">Tippers</option>
+        <option value="rakkers">Rakkers</option>
+        <option value="aspi">Aspi</option>
+        <option value="leiding">Leiding</option>
+        <option value="kokkies">Kokkies</option>
+        <option value="overige">Overige</option>
+      </select>
+      <button onclick="adminRegistreer()">Gebruiker aanmaken</button>
     </div>
   </div>
 
