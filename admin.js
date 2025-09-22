@@ -22,14 +22,10 @@ function adminRegistreer() {
   if (!email || !password || !rol || !groep) {
     return alert("Vul alle velden in");
   }
-console.log("Nieuwe gebruiker aangemaakt:", user.uid);
-  .catch(e => {
-  console.error("Fout bij Firestore:", e);
-  alert("Fout: " + e.message);
-});
+
   auth.createUserWithEmailAndPassword(email, password)
     .then(({ user }) => {
-      // Wacht tot user beschikbaar is
+      console.log("Nieuwe gebruiker aangemaakt:", user.uid);
       return db.collection("gebruikers").doc(user.uid).set({
         email,
         rol,
@@ -45,7 +41,10 @@ console.log("Nieuwe gebruiker aangemaakt:", user.uid);
       document.getElementById("new-groep").selectedIndex = 0;
       laadGebruikersBeheer();
     })
-    .catch(e => alert("Fout bij aanmaken: " + e.message));
+    .catch(e => {
+      console.error("Fout bij aanmaken:", e);
+      alert("Fout: " + e.message);
+    });
 }
 
 function laadGebruikersBeheer() {
