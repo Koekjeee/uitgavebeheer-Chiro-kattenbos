@@ -1,4 +1,4 @@
-// 1. Firebase initialisatie
+// Firebase init
 const firebaseConfig = {
   apiKey: "AIzaSyC-UaXhh5juhV4raXWnzku9fSZZD75-y9w",
   authDomain: "uitgavebeheerch.firebaseapp.com",
@@ -6,68 +6,44 @@ const firebaseConfig = {
   messagingSenderId: "461673562296",
   appId: "1:461673562296:web:d90a026cd685400139f44d"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-
-// 2. Gebruikers dropdown vullen
-function loadGebruikers() {
-  const select = document.getElementById("uitgave-gebruiker");
-  select.innerHTML = `<option value="" disabled selected>Kies gebruiker</option>`;
-  db.collection("gebruikers").get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const option = document.createElement("option");
-        option.value = doc.id;
-        option.textContent = data.email;
-        select.appendChild(option);
-      });
-    })
-    .catch(err => console.error("Fout loadGebruikers:", err));
+// Navigeer naar admin-pagina
+function goToAdmin() {
+  window.location.href = "admin.html";
 }
 
-
-// 3. Inloggen
+// Login
 function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   auth.signInWithEmailAndPassword(email, password)
-    .catch(error => alert(error.message));
+    .catch(e => alert(e.message));
 }
 
-
-// 4. Uitloggen
+// Logout
 function logout() {
-  auth.signOut()
-    .then(() => {
-      document.getElementById("logout-btn").style.display = "none";
-      document.getElementById("auth-section").style.display = "block";
-      document.getElementById("uitgave-section").style.display = "none";
-      document.getElementById("admin-section").style.display = "none";
-    });
+  auth.signOut();
 }
 
-
-// 5. Nieuwe uitgave toevoegen
+// Voeg uitgave toe (gebruik huidige user)
 function voegUitgaveToe() {
   const titel = document.getElementById("titel").value.trim();
   const bedrag = parseFloat(document.getElementById("bedrag").value);
   const categorie = document.getElementById("categorie").value;
-  const gebruikerUid = document.getElementById("uitgave-gebruiker").value;
-
-  if (!titel || !bedrag || !categorie || !gebruikerUid) {
-    return alert("Vul alle velden in");
+  const user = auth.currentUser;
+  if (!user || !titel || !bedrag || !categorie) {
+    return alert("Vul alle velden in en log in.");
   }
 
-  db.collection("gebruikers").doc(gebruikerUid).get()
+  // Haal groep van ingelogde gebruiker
+  db.collection("gebruikers").doc(user.uid).get()
     .then(doc => {
-      if (!doc.exists) throw new Error("Gebruiker niet gevonden");
       const groep = doc.data().groep;
       return db.collection("uitgaven").add({
-        uid: gebruikerUid,
+        uid: user.uid,
         titel,
         bedrag,
         categorie,
@@ -76,158 +52,65 @@ function voegUitgaveToe() {
       });
     })
     .then(() => {
-      alert("Uitgave toegevoegd!");
       document.getElementById("titel").value = "";
       document.getElementById("bedrag").value = "";
-      document.getElementById("categorie").value = "";
-      document.getElementById("uitgave-gebruiker").value = "";
+      document.getElementById("categorie").selectedIndex = 0;
       haalUitgavenOp();
     })
-    .catch(error => alert(error.message));
+    .catch(e => alert(e.message));
 }
 
-
-// 6. Uitgaven ophalen en tonen
+// Haal uitgaven op
 function haalUitgavenOp() {
-  const lijst = document.getElementById("uitgaven-lijst");
-  lijst.innerHTML = "";
   const user = auth.currentUser;
   if (!user) return;
+  document.getElementById("uitgaven-lijst").innerHTML = "";
 
   db.collection("gebruikers").doc(user.uid).get()
     .then(doc => {
-      const data = doc.data();
-      let query = db.collection("uitgaven").orderBy("datum", "desc");
-      if (data.rol !== "admin") {
-        query = query.where("groep", "==", data.groep);
+      const { rol, groep } = doc.data();
+      let q = db.collection("uitgaven").orderBy("datum", "desc");
+      if (rol !== "admin") {
+        q = q.where("groep", "==", groep);
       }
-      return query.get();
+      return q.get();
     })
-    .then(snapshot => {
-      snapshot.forEach(doc => {
+    .then(snap => {
+      snap.forEach(doc => {
         const d = doc.data();
-        const item = document.createElement("li");
-        const ts = d.datum && d.datum.toDate
-          ? d.datum.toDate().toLocaleString()
-          : "";
-        item.textContent = `${d.titel}: €${d.bedrag.toFixed(2)} (${d.categorie}) door ${d.uid} op ${ts}`;
-        lijst.appendChild(item);
+        const li = document.createElement("li");
+        const tijd = d.datum?.toDate().toLocaleString() || "";
+        li.textContent = `${d.titel}: €${d.bedrag.toFixed(2)} (${d.categorie}) op ${tijd}`;
+        document.getElementById("uitgaven-lijst").appendChild(li);
       });
-    })
-    .catch(err => console.error("Fout haalUitgavenOp:", err));
+    });
 }
 
-
-// 7. Admin-dashboard vullen
-// 1. Functie om Admin Dashboard te vullen
-function laadAdminDashboard() {
-  const lijst = document.getElementById("gebruikers-lijst");
-  lijst.innerHTML = "";
-
-  db.collection("gebruikers").get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        const { email, rol, groep } = doc.data();
-        const uid = doc.id;
-
-        // Maak een list-item aan
-        const item = document.createElement("li");
-        item.innerHTML = `
-          ${email}
-          <!-- Rol dropdown -->
-          <select onchange="updateRol('${uid}', this.value)">
-            <option value="gebruiker" ${rol === "gebruiker" ? "selected" : ""}>gebruiker</option>
-            <option value="admin" ${rol === "admin" ? "selected" : ""}>admin</option>
-          </select>
-
-          <!-- Groep dropdown -->
-          <select onchange="updateGroep('${uid}', this.value)">
-            ${[
-              "ribbels","speelclubs","kwiks","tippers",
-              "rakkers","aspi","leiding","kokkies","overige"
-            ].map(g =>
-              `<option value="${g}" ${groep === g ? "selected" : ""}>${g}</option>`
-            ).join("")}
-          </select>
-        `;
-
-        lijst.appendChild(item);
-      });
-    })
-    .catch(err => console.error("Fout bij laden Admin Dashboard:", err));
-}
-
-// 2. Functie om groep bij te werken
-function updateGroep(uid, nieuweGroep) {
-  db.collection("gebruikers").doc(uid)
-    .update({ groep: nieuweGroep })
-    .catch(err => console.error("Fout bij updateGroep:", err));
-}
-
-// 8. Rol updaten
-function updateRol(uid, rol) {
-  db.collection("gebruikers").doc(uid).update({ rol });
-}
-
-
-// 9. Admin maakt nieuwe gebruiker
-function adminRegistreer() {
-  const naam = document.getElementById("new-name").value.trim();
-  const email = document.getElementById("new-email").value.trim();
-  const rol = document.getElementById("new-rol").value;
-
-  if (!naam || !email || !rol) {
-    return alert("Vul alle velden in");
-  }
-
-  const password = prompt("Voer een tijdelijk wachtwoord in:");
-  if (!password) {
-    return alert("Wachtwoord is verplicht");
-  }
-
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(({ user }) => {
-      return db.collection("gebruikers").doc(user.uid).set({
-        naam,
-        email,
-        rol,
-        groep: rol==="admin" ? "leiding" : "overige",
-        aangemaaktOp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    })
-    .then(() => {
-      alert("Nieuwe gebruiker aangemaakt!");
-      document.getElementById("new-name").value = "";
-      document.getElementById("new-email").value = "";
-      document.getElementById("new-rol").value = "gebruiker";
-      laadAdminDashboard();
-      loadGebruikers();
-    })
-    .catch(error => alert(error.message));
-}
-
-
-// 10. UI switch op auth-state change
+// UI-switch op auth-state change
 auth.onAuthStateChanged(user => {
   if (user) {
-    document.getElementById("logout-btn").style.display = "inline-block";
     document.getElementById("auth-section").style.display = "none";
     document.getElementById("uitgave-section").style.display = "block";
-    loadGebruikers();
+    document.getElementById("logout-btn").style.display = "inline-block";
 
+    // Zet rol & groep in beeld
     db.collection("gebruikers").doc(user.uid).get()
       .then(doc => {
-        if (doc.exists && doc.data().rol==="admin") {
-          document.getElementById("admin-section").style.display = "block";
-          laadAdminDashboard();
+        const { rol, groep } = doc.data();
+        document.getElementById("user-info")
+          .textContent = `Ingelogd als ${rol} | groep: ${groep}`;
+
+        if (rol === "admin") {
+          document.getElementById("admin-btn").style.display = "inline-block";
         }
       });
 
     haalUitgavenOp();
   } else {
-    document.getElementById("logout-btn").style.display = "none";
     document.getElementById("auth-section").style.display = "block";
     document.getElementById("uitgave-section").style.display = "none";
-    document.getElementById("admin-section").style.display = "none";
+    document.getElementById("logout-btn").style.display = "none";
+    document.getElementById("admin-btn").style.display = "none";
+    document.getElementById("user-info").textContent = "";
   }
 });
