@@ -25,6 +25,7 @@ function adminRegistreer() {
 
   auth.createUserWithEmailAndPassword(email, password)
     .then(({ user }) => {
+      // Wacht tot user beschikbaar is
       return db.collection("gebruikers").doc(user.uid).set({
         email,
         rol,
@@ -33,13 +34,14 @@ function adminRegistreer() {
       });
     })
     .then(() => {
+      alert("Gebruiker toegevoegd!");
       document.getElementById("new-email").value = "";
       document.getElementById("new-password").value = "";
       document.getElementById("new-rol").value = "gebruiker";
       document.getElementById("new-groep").selectedIndex = 0;
       laadGebruikersBeheer();
     })
-    .catch(e => alert(e.message));
+    .catch(e => alert("Fout bij aanmaken: " + e.message));
 }
 
 function laadGebruikersBeheer() {
