@@ -22,7 +22,11 @@ function adminRegistreer() {
   if (!email || !password || !rol || !groep) {
     return alert("Vul alle velden in");
   }
-
+console.log("Nieuwe gebruiker aangemaakt:", user.uid);
+  .catch(e => {
+  console.error("Fout bij Firestore:", e);
+  alert("Fout: " + e.message);
+});
   auth.createUserWithEmailAndPassword(email, password)
     .then(({ user }) => {
       // Wacht tot user beschikbaar is
