@@ -49,8 +49,7 @@ function voegUitgaveToe() {
       document.getElementById("bedrag").value = "";
       document.getElementById("categorie").value = "";
       haalUitgavenOp();
-    })
-    .catch(e => alert(e.message));
+    });
 }
 
 function haalUitgavenOp() {
@@ -77,6 +76,7 @@ function haalUitgavenOp() {
             <th>Groep</th>
             <th>Datum</th>
             <th>Betaald</th>
+            <th>Acties</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -86,6 +86,8 @@ function haalUitgavenOp() {
       snapshot.forEach(doc => {
         const d = doc.data();
         const datum = d.datum?.toDate().toLocaleString() || "";
+        const isEigenUitgave = d.uid === user.uid;
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${d.titel}</td>
@@ -93,13 +95,29 @@ function haalUitgavenOp() {
           <td>${d.categorie}</td>
           <td>${d.groep}</td>
           <td>${datum}</td>
-          <td>${d.betaald ? "✅" : "❌"}</td>
+          <td>
+            <input type="checkbox" ${d.betaald ? "checked" : ""} onchange="toggleBetaald('${doc.id}', this.checked)" ${isEigenUitgave ? "" : "disabled"}>
+          </td>
+          <td>
+            ${isEigenUitgave ? `<button onclick="verwijderUitgave('${doc.id}')">🗑️</button>` : ""}
+          </td>
         `;
         tbody.appendChild(row);
       });
 
       lijst.appendChild(table);
     });
+}
+
+function toggleBetaald(id, status) {
+  db.collection("uitgaven").doc(id).update({ betaald: status });
+}
+
+function verwijderUitgave(id) {
+  if (confirm("Weet je zeker dat je deze uitgave wilt verwijderen?")) {
+    db.collection("uitgaven").doc(id).delete()
+      .then(() => haalUitgavenOp());
+  }
 }
 
 auth.onAuthStateChanged(user => {
