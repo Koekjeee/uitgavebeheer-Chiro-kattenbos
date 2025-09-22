@@ -10,27 +10,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-function register() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const groep = document.getElementById("groep").value;
-
-  auth.createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      return db.collection("gebruikers").doc(user.uid).set({
-        email: user.email,
-        rol: "gebruiker",
-        groep,
-        aangemaaktOp: new Date()
-      });
-    })
-    .then(() => {
-      alert("Geregistreerd en opgeslagen!");
-    })
-    .catch(error => alert(error.message));
-}
-
 function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -131,23 +110,34 @@ function updateGroep(uid, groep) {
   db.collection("gebruikers").doc(uid).update({ groep });
 }
 
+function adminRegistreer() {
+  const email = document.getElementById("new-email").value;
+  const password = document.getElementById("new-password").value;
+  const groep = document.getElementById("new-groep").value;
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      const newUser = userCredential.user;
+
+      return db.collection("gebruikers").doc(newUser.uid).set({
+        email: newUser.email,
+        rol: "gebruiker",
+        groep,
+        aangemaaktOp: new Date()
+      });
+    })
+    .then(() => {
+      alert("Nieuwe gebruiker aangemaakt!");
+      document.getElementById("new-email").value = "";
+      document.getElementById("new-password").value = "";
+    })
+    .catch(error => alert(error.message));
+}
+
 auth.onAuthStateChanged((user) => {
   if (user) {
     document.getElementById("auth-section").style.display = "none";
     document.getElementById("uitgave-section").style.display = "block";
 
     db.collection("gebruikers").doc(user.uid).get()
-      .then(doc => {
-        if (doc.exists && doc.data().rol === "admin") {
-          document.getElementById("admin-section").style.display = "block";
-          laadAdminDashboard();
-        }
-      });
-
-    haalUitgavenOp();
-  } else {
-    document.getElementById("auth-section").style.display = "block";
-    document.getElementById("uitgave-section").style.display = "none";
-    document.getElementById("admin-section").style.display = "none";
-  }
-});
+     
